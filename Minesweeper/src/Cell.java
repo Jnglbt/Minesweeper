@@ -73,7 +73,7 @@ public class Cell implements ActionListener
         if (value == -1) board.fail();
     }
 
-    public void incrementalValue()
+    public void incrementValue()
     {
         value++;
     }
