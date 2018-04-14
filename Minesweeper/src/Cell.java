@@ -2,6 +2,7 @@ import javax.swing.*;
         import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Random;
 
 public class Cell implements ActionListener
 {
@@ -19,6 +20,16 @@ public class Cell implements ActionListener
         button.setMargin(new Insets(0, 0, 0, 0));
         this.board = board;
         notChecked = true;
+    }
+
+    int setMine()
+    {
+        if (!isMine())
+        {
+            setValue(-1);
+            return 1;
+        }
+        return 0;
     }
 
     public JButton getButton()
@@ -53,7 +64,16 @@ public class Cell implements ActionListener
 
     public void displayValue()
     {
-        if (value == -1)
+        if (isMine())
+        {
+            button.setText("\u2600");
+            button.setBackground(color);
+        }
+        else if (value != 0)
+        {
+            button.setText(String.valueOf(value));
+        }
+        /*if (value == -1)
         {
             button.setText("\u2600");
             button.setBackground(Color.RED);
@@ -61,16 +81,39 @@ public class Cell implements ActionListener
         else if (value != 0)
         {
             button.setText(String.valueOf(value));
-        }
+        }*/
     }
+
 
     public void checkCell()
     {
-        button.setEnabled(false);
+        reveal(null);
+        if (isMine() || board.isDone())
+            board.reveal(isMine() ? Color.red : Color.green);
+        else if (value == 0)
+            board.scanForEmptyCells();
+
+        /*button.setEnabled(false);
         displayValue();
         notChecked = false;
         if (value == 0) board.scanForEmptyCells();
         if (value == -1) board.fail();
+        */
+    }
+
+    boolean isChecked()
+    {
+        return checked;
+    }
+
+    boolean isEmpty()
+    {
+        return !isChecked() && value == 0;
+    }
+
+    boolean isMine()
+    {
+        return value == -1;
     }
 
     public void incrementValue()
@@ -83,15 +126,11 @@ public class Cell implements ActionListener
         return notChecked;
     }
 
-    public boolean isEmpty()
-    {
-        return isNotChecked() && value == 0;
-    }
-
     public void reveal()
     {
         displayValue();
-        button.setEnabled(false);
+        checked = true;
+        button.setEnabled(!checked);
     }
 
     @Override

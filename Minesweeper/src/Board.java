@@ -1,32 +1,76 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Board
 {
+    static final int SIDE = 8;
+    static final int MINES;
     private Cell[][] cells;
+    cells = new Cell[SIDE][SIDE];
     private int cellID = 0;
-    private int side = 8;
-    private int limit = side - 2;
+    private int limit = SIDE - 2;
+    IntStream.range(0, SIDE).forEach(i -> {
+        IntStream.range(0, SIDE).forEach(j -> cells[i][j] = new Cell(this));
+    });
+    init();
+
+    private void init()
+    {
+        plantMines();
+        setCellValues();
+    }
+
+    private void forEach(Consumer<Cell> consumer)
+    {
+        Stream.of(cells).forEach(row -> Stream.of(row).forEach(consumer));
+    }
 
     public void setBoard()
     {
         JFrame frame = new JFrame();
         frame.add(addCells());
 
-        plantMines();
-        setCellValues();
+        //plantMines();
+        //setCellValues();
 
         frame.pack();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 
+    void reveal(Color color)
+    {
+        forEach(cell -> cell.reveal(color));
+    }
+
+    boolean isDone()
+    {
+        int[] result = new int[1];
+        forEach(cell -> {if (cell.isEmpty()) { result[0]++; }});
+        return result[0] == MINES;
+    }
+
+
+    private void plantMines()
+    {
+        Random random = new Random();
+        int counter = 0;
+        while (counter != MINES)
+        {
+            counter += cells[random.nextInt(SIDE)][random.nextInt(SIDE)].setMine();
+        }
+    }
+
     public void setCellValues()
     {
-        for (int i = 0; i < side; i++)
+        for (int i = 0; i < SIDE; i++)
         {
-            for (int j = 0; j < side; j++)
+            for (int j = 0; j < SIDE; j++)
             {
                 if (cells[i][j].getValue() != -1)
                 {
@@ -79,7 +123,7 @@ public class Board
         int random;
         for (int i = 0; i < q;)
         {
-            random = (int)(Math.random() * (side*side));
+            random = (int)(Math.random() * (SIDE*SIDE));
             if (!loc.contains(random))
             {
                 loc.add(random);
@@ -93,7 +137,9 @@ public class Board
 
     private JPanel addCells()
     {
-        JPanel panel = new JPanel(new GridLayout(side, side));
+        JPanel panel = new JPanel(new GridLayout(SIDE, SIDE));
+        forEach(cell -> panel.add(cell.getButton()));
+        /*
         cells = new Cell[side][side];
         for (int i = 0; i < side; i++)
         {
@@ -103,7 +149,7 @@ public class Board
                 cells[i][j].setId(getID());
                 panel.add(cells[i][j].getButton());
             }
-        }
+        }*/
         return panel;
     }
 
@@ -127,9 +173,9 @@ public class Board
 
     public void scanForEmptyCells()
     {
-        for (int i = 0; i < side; i++)
+        for (int i = 0; i < SIDE; i++)
         {
-            for (int j = 0; j < side; j++)
+            for (int j = 0; j < SIDE; j++)
             {
                 if (!cells[i][j].isNotChecked())
                 {
